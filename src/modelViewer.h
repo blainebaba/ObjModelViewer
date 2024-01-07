@@ -10,24 +10,36 @@
 #include "shader.h"
 #include "plain.h"
 #include "model.h"
+#include "light.h"
+#include "global.h"
 
 class ModelViewer {
 public:
-	
 	ModelViewer(Camera* camera) {
 		this->camera = camera;
 		this->shader = new Shader("shaders/vt.glsl", "shaders/fg.glsl");
 
-		this->plain = new Plain();
-		// this->model = new Model("D:\\code\\learn opengl\\LearnOpenGL-master\\resources\\objects\\backpack\\backpack.obj");
-		this->model = new Model("D:\\code\\learn opengl\\LearnOpenGL-master\\resources\\objects\\backpack\\backpack.obj");
+		// create an 1x1 texture, the id should be 1 if it creates first
+		createEmptyTexture();
 	}
 
-	void setup() {
+	void setup(vector<string>& modelPaths) {
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_CULL_FACE);
 		glfwWindowHint(GLFW_SAMPLES, 4);
 		glEnable(GL_MULTISAMPLE);
+
+		lights.addLight(Light::createSpotlight(vec3(0, 5, 15), vec3(0, 0, -1)));
+
+		this->plain = new Plain();
+
+		if (modelPaths.size() == 0) {
+			cout << "no model specified" << endl;
+			exit(1);
+		}
+		for (string path : modelPaths) {
+			models.push_back(Model(path.c_str()));
+		}
 	}
 
 	void renderLoop() {
@@ -39,17 +51,39 @@ public:
 		shader->setMat4("viewMat", camera->getViewMat());
 		shader->setMat4("projectMat", camera->getProjectMat());
 		shader->setVec3("fog_color", bgColor);
+		shader->setBool("flip_y", flipY);
+
+		lights.setupLights(shader);
 		
 		plain->draw(shader);
 
-		model->draw(shader);
+		models[curModel].draw(shader);
 	}
 
-	void keyboardCallback(GLFWwindow* window) {
-		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+	// continuous event during press
+	void keyHoldCallback(GLFWwindow* window) {
+		camera->keyboardCallBack(window);
+	}
+
+	// one event for each press
+	void keyPressCallback(GLFWwindow* window, int key, int action) {
+		if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
 			glfwSetWindowShouldClose(window, true);
 		}
-		camera->keyboardCallBack(window);
+		if (key == GLFW_KEY_Y && action == GLFW_PRESS) {
+			flipY = !flipY;
+		}
+
+		if (key == GLFW_KEY_RIGHT && action == GLFW_PRESS) {
+			curModel = (curModel + 1) % models.size();
+		}
+
+		if (key == GLFW_KEY_LEFT && action == GLFW_PRESS) {
+			curModel = (curModel - 1);
+			if (curModel < 0)
+				curModel = models.size() - 1;
+		}
+		
 	}
 
 	void mouseCallback(GLFWwindow* window, float xpos, float ypos) {
@@ -59,13 +93,27 @@ public:
 	void windowSizeChangeCallback(int nWidth, int nHeight) {
 		camera->windowSizeChanged(nWidth, nHeight);
 	}
+
 private:
 	Camera* camera;
 	Shader* shader;
 
+	LightSet lights;
+
 	Plain* plain;
 
-	Model* model;
+	vector<Model> models;
+	int curModel = 0;
 
-	vec4 bgColor = vec4(0.2, 0.2, 0.2, 1);
+	vec4 bgColor = vec4(0.1, 0.1, 0.1, 1);
+	bool flipY = false;
+
+	void createEmptyTexture() {
+		glGenTextures(1, &EMPTY_TEX);
+		if (EMPTY_TEX != 1) {
+			cout << "internal error, empty texture id is not 1" << endl;
+		}
+		glBindTexture(GL_TEXTURE_2D, EMPTY_TEX);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1, 1, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	}
 };

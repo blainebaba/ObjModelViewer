@@ -7,6 +7,7 @@ layout (location = 2) in vec2 texCoord;
 out VS_OUT {
 	vec2 texCoord;
 	vec3 pos;
+	vec3 norm;
 } vs_out;
 
 uniform vec3 viewPos;
@@ -15,7 +16,9 @@ uniform mat4 viewMat;
 uniform mat4 projectMat;
 
 void main() {
-	gl_Position = projectMat * viewMat * modelMat * vec4(pos, 1);
+	vs_out.pos = (modelMat * vec4(pos, 1)).xyz;
+	gl_Position = projectMat * viewMat * vec4(vs_out.pos, 1);
 	vs_out.texCoord = texCoord;
-	vs_out.pos = pos;
+	// norm is not changed
+	vs_out.norm = norm;
 }

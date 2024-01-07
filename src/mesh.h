@@ -7,6 +7,10 @@
 #include <vector>
 
 #include "shader.h"
+#include "global.h"
+
+using namespace glm;
+using namespace std;
 
 struct Vertex {
 	glm::vec3 Position;
@@ -14,40 +18,26 @@ struct Vertex {
 	glm::vec2 TexCoord;
 };
 
-struct Material {
-	unsigned int diffuse_texture = 0;
-	float diffuse_color[3];
-};
-
 class Mesh {
 public:
 	std::vector<Vertex> vertices;
 	std::vector<unsigned int> indices;
-	Material material;
+	Material mat;
 
 	Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, Material material) {
 		
 		this->vertices = vertices;
 		this->indices = indices;
-		this->material = material;
+		this->mat = material;
 
 		setupMesh();
 	}
 
 	void draw(Shader* shader) {
 		unsigned int textureUnit = 0;
-		// diffuse
-		if (material.diffuse_texture > 0) {
-			glActiveTexture(GL_TEXTURE0 + textureUnit);
-			shader->setInt("texture_diffuse", textureUnit++);
-			glBindTexture(GL_TEXTURE_2D, material.diffuse_texture);
-			shader->setBool("use_texture_diffuse", true);
-			glActiveTexture(GL_TEXTURE0);
-		}
-		else {
-			shader->setVec3("diffuse_color", material.diffuse_color);
-			shader->setBool("use_texture_diffuse", false);
-		}
+
+		shader->setDiffuse(mat, textureUnit);
+		shader->setSpecular(mat, textureUnit);
 
 		// draw mesh
 		glBindVertexArray(VAO);

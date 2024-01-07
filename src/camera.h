@@ -33,6 +33,8 @@ private:
 	float aspectRatio;
 	glm::mat4 projectMat;
 public:
+	float MIN_X, MAX_X, MIN_Y, MAX_Y, MIN_Z, MAX_Z; 
+
 
 	Camera(float fov, int windowWidth, int windowHeight ) {
 		// init projection matrix
@@ -42,6 +44,11 @@ public:
 
 		// init view matrix
 		viewMat = glm::lookAt(cameraPos, cameraPos + cameraDir, glm::vec3(0, 1, 0));
+
+		MIN_X = MIN_Z = -20;
+		MAX_X = MAX_Z = 20;
+		MIN_Y = -10;
+		MAX_Y = 10;
 	};
 
 	const glm::mat4& getProjectMat() {
@@ -127,17 +134,17 @@ public:
 			glm::vec3 moveDelta = moveDi * ((curTime - lastKeyboardEventTime) * cameraMoveSpeed);
 
 			// limit move area
-			if (cameraPos.x > 15 && moveDelta.x > 0)
+			if (cameraPos.x > MAX_X && moveDelta.x > 0)
 				moveDelta.x = 0;
-			if (cameraPos.x < -15 && moveDelta.x < 0)
+			if (cameraPos.x < MIN_X && moveDelta.x < 0)
 				moveDelta.x = 0;
-			if (cameraPos.y > 20 && moveDelta.y > 0)
+			if (cameraPos.y > MAX_Y && moveDelta.y > 0)
 				moveDelta.y = 0;
-			if (cameraPos.y < -10 && moveDelta.y < 0)
+			if (cameraPos.y < MIN_Y && moveDelta.y < 0)
 				moveDelta.y = 0;
-			if (cameraPos.z > 15 && moveDelta.z > 0)
+			if (cameraPos.z > MAX_Z && moveDelta.z > 0)
 				moveDelta.z = 0;
-			if (cameraPos.z < -15 && moveDelta.z < 0)
+			if (cameraPos.z < MIN_Z && moveDelta.z < 0)
 				moveDelta.z = 0;
 
 			cameraPos += moveDelta;

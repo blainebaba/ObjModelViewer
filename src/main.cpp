@@ -22,6 +22,10 @@ void windowSizeChangeCallback(GLFWwindow* window, int width, int height) {
 	viewer->windowSizeChangeCallback(width, height);
 }
 
+void keyPressCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+	viewer->keyPressCallback(window, key, action);
+}
+
 int main() {
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -48,13 +52,23 @@ int main() {
 	viewer = new ModelViewer(&camera);
 
 	glfwSetCursorPosCallback(window, mouseCallback);
+	glfwSetKeyCallback(window, keyPressCallback);
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	glfwSetFramebufferSizeCallback(window, windowSizeChangeCallback);
 
-	viewer->setup();
+	vector<string> modelPaths = {
+		"D:\\code\\learn opengl\\LearnOpenGL-master\\resources\\objects\\backpack\\backpack.obj",
+		"D:\\code\\learn opengl\\LearnOpenGL-master\\resources\\objects\\cyborg\\cyborg.obj",
+		"D:\\code\\learn opengl\\LearnOpenGL-master\\resources\\objects\\nanosuit\\nanosuit.obj",
+		"D:\\code\\learn opengl\\LearnOpenGL-master\\resources\\objects\\planet\\planet.obj",
+		"D:\\code\\learn opengl\\LearnOpenGL-master\\resources\\objects\\rock\\rock.obj",
+		"D:\\code\\learn opengl\\resources\\tree2\\tree2.obj",
+		"D:\\code\\learn opengl\\resources\\low_poly_tree\\low_poly_tree.obj",
+	};
+	viewer->setup(modelPaths);
 
 	while (!glfwWindowShouldClose(window)) {
-		viewer->keyboardCallback(window);
+		viewer->keyHoldCallback(window);
 
 		viewer->renderLoop();
 

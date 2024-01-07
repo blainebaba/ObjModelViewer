@@ -81,55 +81,80 @@ private:
 	void processNode(aiNode* node, const aiScene* scene);
 	Mesh processMesh(aiMesh* mesh, const aiScene* scene);
 
-	void loadMaterials(aiMaterial* mat, Material& material) {
-		// load diffuse texture
-		if (mat->GetTextureCount(aiTextureType_DIFFUSE) > 0) {
-			aiString str;
-			mat->GetTexture(aiTextureType_DIFFUSE, 0, &str);
-			string name = string(str.C_Str());
-			if (loadedTextures.find(name) != loadedTextures.end()) {
-				material.diffuse_texture = loadedTextures[name];
-			}
-			else {
-				material.diffuse_texture = readTextureFromFile(name.c_str(), directory);
-				loadedTextures[name] = material.diffuse_texture;
-			}
-		}
-		// load diffuse color
-		aiColor3D color;
-		if (AI_SUCCESS == mat->Get(AI_MATKEY_COLOR_DIFFUSE, color)) {
-			material.diffuse_color[0] = color.r;
-			material.diffuse_color[1] = color.g;
-			material.diffuse_color[2] = color.b;
+	void loadMaterials(aiMaterial* aiMtl, Material& mtl) {
+		// diffuse
+		loadTexture(aiMtl, aiTextureType_DIFFUSE, mtl.diffuse_texture);
+		loadColor(aiMtl, mtl.diffuse_color, AI_MATKEY_COLOR_DIFFUSE);
+		// specular
+		loadTexture(aiMtl, aiTextureType_SPECULAR, mtl.specular_texture);
+		loadColor(aiMtl, mtl.specular_color, AI_MATKEY_COLOR_SPECULAR);
+		loadFloat(aiMtl, mtl.shininess, AI_MATKEY_SHININESS);
+		loadFloat(aiMtl, mtl.shininess_strength, AI_MATKEY_SHININESS_STRENGTH);
+	}
+
+	void loadFloat(aiMaterial* mat, float& value, const char* pKey, unsigned int type, unsigned int idx) {
+		float temp;
+		if (AI_SUCCESS == mat->Get(pKey, type, idx, temp)) {
+			value = temp;
 		}
 	}
 
-	unsigned int readTextureFromFile(const char* path, string directory) {
+	void loadColor(aiMaterial* mat, vec3& colorVec, const char* pKey, unsigned int type, unsigned int idx) {
+		aiColor3D color;
+		if (AI_SUCCESS == mat->Get(pKey, type, idx, color)) {
+			colorVec.r = color.r;
+			colorVec.g = color.g;
+			colorVec.b = color.b;
+		}
+	}
+
+	void loadTexture(aiMaterial* mat, aiTextureType type, unsigned int& texture) {
+		if (mat->GetTextureCount(type) > 0) {
+			aiString str;
+			mat->GetTexture(type, 0, &str);
+			string name = string(str.C_Str());
+			if (loadedTextures.find(name) != loadedTextures.end()) {
+				texture = loadedTextures[name];
+			}
+			else {
+				int numChannel = 0;
+				if (type == aiTextureType_DIFFUSE)
+					numChannel = 4;
+				else if (type == aiTextureType_SPECULAR)
+					numChannel = 3;
+				texture = readTextureFromFile(name.c_str(), directory, numChannel);
+				loadedTextures[name] = texture;
+			}
+		}
+	}
+
+	unsigned int readTextureFromFile(const char* path, string directory, int expectedChannels) {
 		string fileName = string(path);
 		fileName = directory + "\\" + fileName;
 
 		unsigned int texture;
 		glGenTextures(1, &texture);
+		cout << "loading texture " << texture << endl;
 		// bind object, set target for following operation
 		glBindTexture(GL_TEXTURE_2D, texture);
 
 		int width, height, nChannel;
-		stbi_set_flip_vertically_on_load(true);
-		unsigned char* data = stbi_load(fileName.c_str(), &width, &height, &nChannel, 0);
+		// stbi_set_flip_vertically_on_load(true);
+		unsigned char* data = stbi_load(fileName.c_str(), &width, &height, &nChannel, expectedChannels);
+
+		if (expectedChannels == 0)
+			expectedChannels = nChannel;
 
 		if (data) {
 			GLenum format;
-			if (nChannel == 1) {
-				format = GL_RED;
-			}
-			else if (nChannel == 3) {
+			if (expectedChannels == 3) {
 				format = GL_RGB;
 			}
-			else if (nChannel == 4) {
+			else if (expectedChannels == 4) {
 				format = GL_RGBA;
 			}
 			else {
-				std::cout << "unknown image format" << std::endl;
+				std::cout << "unknown image format, number of channel: " << nChannel << std::endl;
 				return -1;
 			}
 

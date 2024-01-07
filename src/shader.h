@@ -1,11 +1,18 @@
 #pragma once
 
 #include <glad/glad.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include <string>
 #include <fstream>
 #include <sstream>
 #include <iostream>
+
+#include "global.h"
+
+using namespace std;
 
 // wrapper of a shader program
 class Shader {
@@ -37,6 +44,36 @@ public:
 		glUseProgram(ID);
 		glUniform3fv(location, 1, values);
 	}
+
+	void setDiffuse(Material& mat, unsigned int& texUnit) {
+		glActiveTexture(GL_TEXTURE0 + texUnit);
+		glBindTexture(GL_TEXTURE_2D, mat.diffuse_texture);
+		setInt(DIFF_TEX, texUnit);
+		texUnit++;
+
+		setVec3(DIFF_COLO, mat.diffuse_color);
+	}
+
+	void setSpecular(Material& mat, unsigned int& texUnit) {
+		glActiveTexture(GL_TEXTURE0 + texUnit);
+		glBindTexture(GL_TEXTURE_2D, mat.specular_texture);
+		setInt(SPEC_TEX, texUnit);
+		texUnit++;
+
+		setVec3(SPEC_COLO, mat.specular_color);
+		setFloat(SPEC_SHINE, mat.shininess);
+		setFloat(SPEC_SHINE_S, mat.shininess_strength);
+	}
+
+private:
+	const string DIFF_TEX = "mtl.tex_diffuse_texture";
+	const string DIFF_COLO = "mtl.tex_diffuse_color";
+
+	const string SPEC_TEX = "mtl.tex_specular_texture";
+	const string SPEC_COLO = "mtl.tex_specular_color";
+	const string SPEC_SHINE = "mtl.tex_spec_shininess";
+	const string SPEC_SHINE_S = "mtl.tex_spec_scale";
+
 };
 
 Shader::Shader(const char* vertexPath, const char* fragmentPath) {
