@@ -90,6 +90,11 @@ private:
 		loadColor(aiMtl, mtl.specular_color, AI_MATKEY_COLOR_SPECULAR);
 		loadFloat(aiMtl, mtl.shininess, AI_MATKEY_SHININESS);
 		loadFloat(aiMtl, mtl.shininess_strength, AI_MATKEY_SHININESS_STRENGTH);
+
+		// when diffuse texture is set, diffuse color should not be black
+		if (mtl.diffuse_texture != EMPTY_TEX && glm::length(vec3(mtl.diffuse_color)) < 0.01) {
+			mtl.diffuse_color = vec3(1);
+		}
 	}
 
 	void loadFloat(aiMaterial* mat, float& value, const char* pKey, unsigned int type, unsigned int idx) {

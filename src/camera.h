@@ -33,7 +33,9 @@ private:
 	float aspectRatio;
 	glm::mat4 projectMat;
 public:
-	float MIN_X, MAX_X, MIN_Y, MAX_Y, MIN_Z, MAX_Z; 
+	float MIN_X = -20, MAX_X = 20;
+	float MIN_Y = -10, MAX_Y = 20;
+	float MIN_Z = -20, MAX_Z = 20;
 
 
 	Camera(float fov, int windowWidth, int windowHeight ) {
@@ -44,11 +46,6 @@ public:
 
 		// init view matrix
 		viewMat = glm::lookAt(cameraPos, cameraPos + cameraDir, glm::vec3(0, 1, 0));
-
-		MIN_X = MIN_Z = -20;
-		MAX_X = MAX_Z = 20;
-		MIN_Y = -10;
-		MAX_Y = 10;
 	};
 
 	const glm::mat4& getProjectMat() {

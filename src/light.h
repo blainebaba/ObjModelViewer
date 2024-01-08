@@ -11,17 +11,17 @@ using namespace glm;
 
 class Light {
 public:
-	static Light createSpotlight(vec3 pos, vec3 di) {
+	static Light createSpotlight(vec3 pos, vec3 di, float angle) {
 		Light light;
 
 		light.type = 1;
 
 		light.pos = pos;
-		light.di = di;
+		light.di = normalize(di);
 		light.color = vec3(1);
 
-		light.cutoffCos = cos(radians(30.0f));
-		light.cutoffStartCos = cos(radians(25.0f));
+		light.cutoffCos = cos(radians((angle/2)+5));
+		light.cutoffStartCos = cos(radians(angle/2));
 
 		return light;
 	}

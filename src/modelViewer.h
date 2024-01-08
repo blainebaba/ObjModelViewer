@@ -28,8 +28,11 @@ public:
 		glEnable(GL_CULL_FACE);
 		glfwWindowHint(GLFW_SAMPLES, 4);
 		glEnable(GL_MULTISAMPLE);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-		lights.addLight(Light::createSpotlight(vec3(0, 5, 15), vec3(0, 0, -1)));
+		lights.addLight(Light::createSpotlight(vec3(10, 2, 10), vec3(-1, 0.5, -1), 90));
+		lights.addLight(Light::createSpotlight(vec3(-10, 2, 10), vec3(1, 0.5, -1), 90));
 
 		this->plain = new Plain();
 
@@ -70,6 +73,7 @@ public:
 		if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
 			glfwSetWindowShouldClose(window, true);
 		}
+
 		if (key == GLFW_KEY_Y && action == GLFW_PRESS) {
 			flipY = !flipY;
 		}
@@ -83,7 +87,17 @@ public:
 			if (curModel < 0)
 				curModel = models.size() - 1;
 		}
-		
+
+		if (key == GLFW_KEY_B && action == GLFW_PRESS) {
+			if (blendEnabled) {
+				glDisable(GL_BLEND);
+				blendEnabled = false;
+			}
+			else {
+				glEnable(GL_BLEND);
+				blendEnabled = true;
+			}
+		}
 	}
 
 	void mouseCallback(GLFWwindow* window, float xpos, float ypos) {
@@ -107,6 +121,7 @@ private:
 
 	vec4 bgColor = vec4(0.1, 0.1, 0.1, 1);
 	bool flipY = false;
+	bool blendEnabled = true;
 
 	void createEmptyTexture() {
 		glGenTextures(1, &EMPTY_TEX);

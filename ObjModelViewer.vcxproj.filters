@@ -57,5 +57,11 @@
     <ClInclude Include="src\global.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\gltext.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

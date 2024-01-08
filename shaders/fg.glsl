@@ -39,14 +39,14 @@ uniform Material mtl;
 uniform vec3 fog_color;
 uniform bool flip_y;
 
-vec3 readTexture(sampler2D sampler, vec2 texCoord, vec3 texColor) {
-	vec3 color;
+vec4 readTexture(sampler2D sampler, vec2 texCoord, vec3 texColor) {
+	vec4 color;
 	if (textureSize(sampler, 0).x > 1) {
-		color = texture(sampler, texCoord).xyz;
+		color = texture(sampler, texCoord);
 	} else {
-		color = vec3(1);
+		color = vec4(1);
 	}
-	return color * texColor;
+	return color * vec4(texColor,1);
 }
 
 void main() {
@@ -54,7 +54,7 @@ void main() {
 	if (flip_y)
 		texCoord.y = 1 - texCoord.y;
 
-	vec3 color = vec3(0);
+	vec3 color = vec3(0,0,0);
 
 	vec3 viewVec = normalize(viewPos - vs_out.pos);
 	vec3 norm = normalize(vs_out.norm);
@@ -92,18 +92,21 @@ void main() {
 	}
 
 	// diffuse
-	vec3 diffuseColor = readTexture(mtl.tex_diffuse_texture, texCoord, mtl.tex_diffuse_color);
-	color += diffuseColor * diffuseLight;
+	vec4 diffuseColor = readTexture(mtl.tex_diffuse_texture, texCoord, mtl.tex_diffuse_color);
+	color += diffuseColor.xyz * diffuseLight;
 
 	// specular
-	vec3 specColor = readTexture(mtl.tex_specular_texture, texCoord, mtl.tex_specular_color);
-	color += specColor * specularLight;
+	vec4 specColor = readTexture(mtl.tex_specular_texture, texCoord, mtl.tex_specular_color);
+	color += specColor.xyz * specularLight;
 
 	// fog, clear 20, fade 20
 	float depth = length(vs_out.pos);
-	float fogDense = clamp((depth-20)/5, 0, 1);
-	color = color * (1-fogDense) + fog_color * fogDense;
+	float fogDense = clamp((depth-10)/5, 0, 1);
+	color = color.rgb * (1-fogDense) + fog_color * fogDense;
 
-	FragColor = vec4(color,1);
+	// alpha, assume alpha is only decided by diffuse
+	float alpha = diffuseColor.a;
+
+	FragColor = vec4(color, alpha);
 	// FragColor = vec4(diffuseLight, 1);
 }
